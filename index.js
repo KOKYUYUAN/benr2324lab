@@ -5,45 +5,34 @@ const port = 3000
 
 let dbUsers = [
     {
-      username: "yee cinn",
+      username: "kok",
       password: "123456",
-      email:"kobe0@gmail.com"
+      email:"kok@gmail.com"
   },{
     username: "gg",
     password: "34343",
     email:"wee0@gmail.com"
-  },{
-    username: "nononn",
-    password: "whatthe",
-    email:"beee0@gmail.com"
-  }]
+  }
+  ]
 
-//encrypt existing user passwords in the database
 for (let i = 0; i < dbUsers.length; i++) {
   const hashedPassword = bcrypt.hashSync(dbUsers[i].password, 12);
   dbUsers[i].password = hashedPassword;
 }
 
-  //must 1
-  app.use(express.json());
-  //must 2
-  app.listen(port, () => {
+app.use(express.json());
+
+app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
-  })
+})
 
-  app.get('/', (req,res)=> {
+app.get('/', (req,res)=> {
     res.send('Hello World')
-  })
+})
 
-  
-
-//asynchorous method help improver server performance and more responsive to user requests
-  app.post('/signup', async (req, res) =>{
-    //get username, password, email from the client
+app.post('/signup', async (req, res) =>{
     const {username, password, email} = req.body;
-    //bcrypt the password and store in hash
     const hash = await bcrypt.hash(password, 12);
-    //test whether the username is inside the database or not
     const matched = dbUsers.find(Element=> Element.username === username);
     if(matched){
       res.send("Username exist"); 
@@ -59,16 +48,13 @@ for (let i = 0; i < dbUsers.length; i++) {
     }
 })
 
-//async function for login
 app.post('/loginUser', async(req, res)=>{
-  //get username and password
   const {username, password} = req.body;
   const user = dbUsers.find(Element=> Element.username === username);
   if(user){
-    //bcrypt.compare (data, encrypted)
     const hashPass = await bcrypt.compare(password, user.password)
     if(hashPass){
-      res.send(user);
+      res.send({username: user.username, email: user.email});
     }else{
       res.send("password not match")
       return
@@ -79,35 +65,12 @@ app.post('/loginUser', async(req, res)=>{
   }
 })
 
-// synchronous method, generate a salt and hash on separate function calls
-function login(username, password){
-  console.log("someone tried to login with", username, password)
-  
-  let matched = dbUsers.find(element=>element.username == username)
-
-  if(matched) {
-      const isMatch = bcrypt.compareSync(password, matched.password)
-
-      if(isMatch){
-          return matched
-      }         
-      else {
-          return "Password not matched"
-      }
-  }
-  else {
-      return "Username not found"
-  }
-}
-
-app.post('/loginUser',(req, res)=>{
+app.post('/register', (req, res)=>{
   let data = req.body
-  res.send(login(data.username, data.password))
+  res.send(register(data.username, data.password, data.email))
 })
 
-
 function register(newusername, newpassword, newemail){
-  //Check if username exists
   let matched = dbUsers.find(element=>element.username == newusername)
 
   if(matched) {
@@ -126,10 +89,3 @@ function register(newusername, newpassword, newemail){
       return "new user is added"
   }
 }
-
-app.post('/register', (req, res)=>{
-  //req is from the client
-  //req.body is everything written in the Content-Type: application/json refer to the object in the json file 
-  let data = req.body
-  res.send(register(data.username, data.password, data.email))
-})
